@@ -1,25 +1,23 @@
-﻿using TodoWebApp.Foundation.Shared.Threading;
-
-namespace TodoWebApp.Foundation.Shared.Extensions.Threading;
+﻿namespace TodoWebApp.Foundation.Shared.Extensions.Threading;
 
 public static class SynchronizerExtensions
 {
-  public static bool TryEnter(this Synchronizer obj, TimeSpan? timeout) =>
+  public static bool TryEnter(this Shared.Threading.Synchronizer obj, TimeSpan? timeout) =>
     timeout.HasValue ? obj.TryEnter(timeout.Value) : obj.TryEnter();
 
-  public static bool Wait(this Synchronizer obj, TimeSpan? timeout) =>
+  public static bool Wait(this Shared.Threading.Synchronizer obj, TimeSpan? timeout) =>
     timeout.HasValue ? obj.Wait(timeout.Value) : obj.Wait();
 
-  public static void Execute(this Synchronizer obj, Action action) =>
+  public static void Execute(this Shared.Threading.Synchronizer obj, Action action) =>
     obj.Execute(() => { action(); return true; });
 
-  public static T Execute<T>(this Synchronizer obj, Func<T> action) =>
+  public static T Execute<T>(this Shared.Threading.Synchronizer obj, Func<T> action) =>
     obj.Execute(obj.Enter, action);
 
-  public static void TryExecute(this Synchronizer obj, Action action, TimeSpan? timeout = default) =>
+  public static void TryExecute(this Shared.Threading.Synchronizer obj, Action action, TimeSpan? timeout = default) =>
     obj.TryExecute(() => { action(); return true; }, timeout);
 
-  public static T TryExecute<T>(this Synchronizer obj, Func<T> action, TimeSpan? timeout = default) =>
+  public static T TryExecute<T>(this Shared.Threading.Synchronizer obj, Func<T> action, TimeSpan? timeout = default) =>
     obj.Execute(() =>
     {
       var acquired = obj.TryEnter(timeout);
@@ -30,7 +28,7 @@ public static class SynchronizerExtensions
       }
     }, action);
 
-  private static T Execute<T>(this Synchronizer obj, Action enterAction, Func<T> action)
+  private static T Execute<T>(this Shared.Threading.Synchronizer obj, Action enterAction, Func<T> action)
   {
     enterAction();
     try

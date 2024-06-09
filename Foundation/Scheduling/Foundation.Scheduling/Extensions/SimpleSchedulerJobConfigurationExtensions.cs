@@ -1,11 +1,8 @@
-﻿using TodoWebApp.Foundation.Scheduling.Models.Configuration;
-using TodoWebApp.Foundation.Scheduling.Models.DTOs;
-
-namespace TodoWebApp.Foundation.Scheduling.Extensions;
+﻿namespace TodoWebApp.Foundation.Scheduling.Extensions;
 
 internal static class SimpleSchedulerJobConfigurationExtensions
 {
-  public static void Convert(this SimpleSchedulerJobConfiguration obj, out ScheduleOptions options)
+  public static void Convert(this Models.Configuration.SimpleSchedulerJobConfiguration obj, out Models.DTOs.ScheduleOptions options)
   {
     options = new()
     {

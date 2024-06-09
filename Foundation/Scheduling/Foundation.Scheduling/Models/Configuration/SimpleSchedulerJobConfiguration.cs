@@ -1,5 +1,4 @@
 ﻿using System.Text.Json.Serialization;
-using TodoWebApp.Foundation.Scheduling.Models.DTOs;
 
 namespace TodoWebApp.Foundation.Scheduling.Models.Configuration;
 
@@ -11,6 +10,6 @@ public record SimpleSchedulerJobConfiguration
   public DateTimeKind AbsoluteStartType { get; init; } = DateTimeKind.Utc;
   public TimeSpan? RelativeStartDelay { get; init; }
   public TimeSpan? Interval { get; init; }
-  [JsonConverter(typeof(JsonStringEnumConverter<PeriodicBehaviour>))]
-  public PeriodicBehaviour PeriodicType { get; init; } = PeriodicBehaviour.FixedRate;
+  [JsonConverter(typeof(JsonStringEnumConverter<DTOs.PeriodicBehaviour>))]
+  public DTOs.PeriodicBehaviour PeriodicType { get; init; } = DTOs.PeriodicBehaviour.FixedRate;
 }

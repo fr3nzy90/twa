@@ -1,27 +1,27 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using TodoWebApp.Foundation.Scheduling.Models.DTOs;
-using TodoWebApp.Foundation.Scheduling.Services;
 
 namespace Foundation.Scheduling.Tools.ProtoConsole.Testing;
 
 internal static class APITester
 {
-  private record Schedulation(string ExternalId, ScheduleOptions Options, TimeSpan WorkDuration)
+  private record Schedulation(string ExternalId,
+    TodoWebApp.Foundation.Scheduling.Models.DTOs.ScheduleOptions Options,
+    TimeSpan WorkDuration)
   {
     public Guid Id { get; set; }
   }
 
   private static readonly bool CheckSchedulerSchedulations = false;
   private static readonly List<Schedulation> Schedulations;
-  private static readonly List<IEnumerable<SchedulerWork>> SchedulerSchedulations = new();
+  private static readonly List<IEnumerable<TodoWebApp.Foundation.Scheduling.Models.DTOs.SchedulerWork>> SchedulerSchedulations = new();
 
   static APITester()
   {
-    var commonOptions = new ScheduleOptions
+    var commonOptions = new TodoWebApp.Foundation.Scheduling.Models.DTOs.ScheduleOptions
     {
       RelativeStartDelay = TimeSpan.FromSeconds(2),
       Interval = TimeSpan.FromSeconds(3),
-      PeriodicType = PeriodicBehaviour.FixedRate
+      PeriodicType = TodoWebApp.Foundation.Scheduling.Models.DTOs.PeriodicBehaviour.FixedRate
     };
     var commonWorkDuration = TimeSpan.FromMilliseconds(50);
     Schedulations = new()
@@ -35,7 +35,7 @@ internal static class APITester
 
   public static void Run(IServiceProvider serviceProvider)
   {
-    var schedulerService = serviceProvider.GetRequiredService<ISchedulerService>();
+    var schedulerService = serviceProvider.GetRequiredService<TodoWebApp.Foundation.Scheduling.Services.ISchedulerService>();
     Schedulations.ForEach(schedulerService.Add);
     schedulerService.GetAll();
     Schedulations.ForEach(schedulerService.Schedule);
@@ -69,7 +69,7 @@ internal static class APITester
     });
   }
 
-  private static void Add(this ISchedulerService schedulerService, Schedulation schedulation)
+  private static void Add(this TodoWebApp.Foundation.Scheduling.Services.ISchedulerService schedulerService, Schedulation schedulation)
   {
     schedulation.Id = schedulerService.Add(cancellationToken =>
     {
@@ -83,7 +83,7 @@ internal static class APITester
     }, schedulation.ExternalId);
   }
 
-  private static void GetAll(this ISchedulerService schedulerService)
+  private static void GetAll(this TodoWebApp.Foundation.Scheduling.Services.ISchedulerService schedulerService)
   {
     if (CheckSchedulerSchedulations)
     {
@@ -91,15 +91,19 @@ internal static class APITester
     }
   }
 
-  private static void Schedule(this ISchedulerService schedulerService, Schedulation schedulation) =>
+  private static void Schedule(this TodoWebApp.Foundation.Scheduling.Services.ISchedulerService schedulerService,
+    Schedulation schedulation) =>
     schedulerService.Schedule(schedulation.Id, schedulation.Options);
 
-  private static void ExecuteNow(this ISchedulerService schedulerService, Schedulation schedulation) =>
+  private static void ExecuteNow(this TodoWebApp.Foundation.Scheduling.Services.ISchedulerService schedulerService,
+    Schedulation schedulation) =>
     schedulerService.ExecuteNow(schedulation.Id);
 
-  private static void Cancel(this ISchedulerService schedulerService, Schedulation schedulation) =>
+  private static void Cancel(this TodoWebApp.Foundation.Scheduling.Services.ISchedulerService schedulerService,
+    Schedulation schedulation) =>
     schedulerService.Cancel(schedulation.Id);
 
-  private static void Remove(this ISchedulerService schedulerService, Schedulation schedulation) =>
+  private static void Remove(this TodoWebApp.Foundation.Scheduling.Services.ISchedulerService schedulerService,
+    Schedulation schedulation) =>
     schedulerService.Remove(schedulation.Id);
 }

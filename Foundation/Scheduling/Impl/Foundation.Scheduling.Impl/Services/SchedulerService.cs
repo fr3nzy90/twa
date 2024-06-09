@@ -3,7 +3,6 @@ using Microsoft.Extensions.Logging;
 using System.Diagnostics;
 using System.Linq.Expressions;
 using TodoWebApp.Foundation.Scheduling.Impl.Extensions;
-using TodoWebApp.Foundation.Scheduling.Impl.Shared;
 using TodoWebApp.Foundation.Shared.Extensions.Logging;
 using TodoWebApp.Foundation.Shared.Extensions.System;
 using TodoWebApp.Foundation.Shared.Extensions.Threading;
@@ -13,8 +12,8 @@ namespace TodoWebApp.Foundation.Scheduling.Impl.Services;
 internal sealed class SchedulerService : BackgroundService, Scheduling.Services.ISchedulerService
 {
   private readonly ILogger _logger;
-  private readonly Dictionary<Guid, SchedulerWork> _workStorage = new();
-  private readonly SchedulerWorkQueue _scheduledWorkQueue = new();
+  private readonly Dictionary<Guid, Shared.SchedulerWork> _workStorage = new();
+  private readonly Shared.SchedulerWorkQueue _scheduledWorkQueue = new();
   private readonly Foundation.Shared.Threading.Synchronizer _synchronizer = new();
 
   public SchedulerService(ILogger<SchedulerService> logger)
@@ -34,7 +33,7 @@ internal sealed class SchedulerService : BackgroundService, Scheduling.Services.
         {
           id = Guid.NewGuid();
         }
-        var obj = SchedulerWork.Create(id, externalId, work);
+        var obj = Shared.SchedulerWork.Create(id, externalId, work);
         _workStorage.Add(id, obj);
         _logger.LogInformation("{0} added", obj);
         return id;
@@ -118,7 +117,7 @@ internal sealed class SchedulerService : BackgroundService, Scheduling.Services.
         {
           return null;
         }
-        var result = SchedulerWorkFactory.CreateFrom(temp!);
+        var result = Shared.SchedulerWorkFactory.CreateFrom(temp!);
         return result;
       }, timeout),
       new()
@@ -144,7 +143,7 @@ internal sealed class SchedulerService : BackgroundService, Scheduling.Services.
           temp = temp.Where(filter.Compile());
         }
         var result = temp
-          .Select(obj => SchedulerWorkFactory.CreateFrom((obj as SchedulerWork)!))
+          .Select(obj => Shared.SchedulerWorkFactory.CreateFrom((obj as Shared.SchedulerWork)!))
           .ToList();
         return result;
       }, timeout),
@@ -252,11 +251,11 @@ internal sealed class SchedulerService : BackgroundService, Scheduling.Services.
       var success = _workStorage.TryGetValue(id, out var workObj);
       if (!success)
       {
-        _logger.LogError("Error while retrieving {0} for id={1}", nameof(SchedulerWork), id);
+        _logger.LogError("Error while retrieving {0} for id={1}", nameof(Shared.SchedulerWork), id);
         return;
       }
       workObj!.Execute(trigger, cancellationToken);
-      Task.Factory.StartNew(new Action<object?>(state => ExecuteWork((SchedulerWork)state!)), workObj, workObj.CancellationToken);
+      Task.Factory.StartNew(new Action<object?>(state => ExecuteWork((Shared.SchedulerWork)state!)), workObj, workObj.CancellationToken);
     },
     new()
     {
@@ -265,7 +264,7 @@ internal sealed class SchedulerService : BackgroundService, Scheduling.Services.
       ]
     });
 
-  private void ExecuteWork(SchedulerWork workObj) =>
+  private void ExecuteWork(Shared.SchedulerWork workObj) =>
     _logger.ExecuteWithLogging(() =>
     {
       #region Pre-execution

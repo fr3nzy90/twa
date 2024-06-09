@@ -1,12 +1,12 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using TodoWebApp.Foundation.Scheduling.Models.DTOs;
-using TodoWebApp.Foundation.Scheduling.Services;
 
 namespace Foundation.Scheduling.Tools.ProtoConsole.Testing;
 
 internal static class StressTester
 {
-  private record Schedulation(string ExternalId, ScheduleOptions Options, TimeSpan WorkDuration)
+  private record Schedulation(string ExternalId,
+    TodoWebApp.Foundation.Scheduling.Models.DTOs.ScheduleOptions Options,
+    TimeSpan WorkDuration)
   {
     public Guid Id { get; set; }
   }
@@ -15,7 +15,7 @@ internal static class StressTester
 
   static StressTester()
   {
-    var commonOptions = new ScheduleOptions
+    var commonOptions = new TodoWebApp.Foundation.Scheduling.Models.DTOs.ScheduleOptions
     {
       RelativeStartDelay = TimeSpan.FromSeconds(5),
       Interval = TimeSpan.Zero
@@ -32,12 +32,12 @@ internal static class StressTester
 
   public static void Run(IServiceProvider serviceProvider)
   {
-    var schedulerService = serviceProvider.GetRequiredService<ISchedulerService>();
+    var schedulerService = serviceProvider.GetRequiredService<TodoWebApp.Foundation.Scheduling.Services.ISchedulerService>();
     Schedulations.ForEach(schedulerService.Add);
     Schedulations.ForEach(schedulerService.Schedule);
   }
 
-  private static void Add(this ISchedulerService schedulerService, Schedulation schedulation)
+  private static void Add(this TodoWebApp.Foundation.Scheduling.Services.ISchedulerService schedulerService, Schedulation schedulation)
   {
     schedulation.Id = schedulerService.Add(cancellationToken =>
     {
@@ -50,6 +50,7 @@ internal static class StressTester
     }, schedulation.ExternalId);
   }
 
-  private static void Schedule(this ISchedulerService schedulerService, Schedulation schedulation) =>
+  private static void Schedule(this TodoWebApp.Foundation.Scheduling.Services.ISchedulerService schedulerService,
+    Schedulation schedulation) =>
     schedulerService.Schedule(schedulation.Id, schedulation.Options);
 }

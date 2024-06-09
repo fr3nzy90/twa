@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
 using System.Runtime.CompilerServices;
-using TodoWebApp.Foundation.Shared.Models.Logging;
 
 namespace TodoWebApp.Foundation.Shared.Extensions.Logging;
 
@@ -38,13 +37,13 @@ public static class LoggerExtensions
         .Select(obj => obj.Name)
         .Aggregate((obj1, obj2) => $"{obj1},{obj2}")}>";
 
-    public static string GenerateParametersMessage(FunctionParameter[]? parameters) =>
+    public static string GenerateParametersMessage(Models.Logging.FunctionParameter[]? parameters) =>
       null == parameters ? "" : $"({parameters
         .Select(obj => $"{obj.Name}={obj.Value}")
         .Aggregate((obj1, obj2) => $"{obj1},{obj2}")})";
   }
 
-  private static readonly ExecuteBlockOptions DefaultOptions = new();
+  private static readonly Models.Logging.ExecuteBlockOptions DefaultOptions = new();
 
   public static void ConditionallyLog(this ILogger logger, LogLevel logLevel, string? message, Func<object?[]>? argsGetter)
   {
@@ -66,29 +65,29 @@ public static class LoggerExtensions
 
   public static void ExecuteWithLogging(this ILogger logger,
     Action action,
-    ExecuteBlockOptions? options = default,
+    Models.Logging.ExecuteBlockOptions? options = default,
     [CallerMemberName] string caller = "") =>
     Execute(logger, () => { action.Invoke(); return true; }, caller, options);
 
   public static T ExecuteWithLogging<T>(this ILogger logger,
     Func<T> action,
-    ExecuteBlockOptions? options = default,
+    Models.Logging.ExecuteBlockOptions? options = default,
     [CallerMemberName] string caller = "") =>
     Execute(logger, action, caller, options);
 
   public static async Task ExecuteWithLoggingAsync(this ILogger logger,
     Func<Task> action,
-    ExecuteBlockOptions? options = default,
+    Models.Logging.ExecuteBlockOptions? options = default,
     [CallerMemberName] string caller = "") =>
     await ExecuteAsync(logger, async () => { await action.Invoke(); return true; }, caller, options);
 
   public static async Task<T> ExecuteWithLoggingAsync<T>(this ILogger logger,
     Func<Task<T>> action,
-    ExecuteBlockOptions? options = default,
+    Models.Logging.ExecuteBlockOptions? options = default,
     [CallerMemberName] string caller = "") =>
     await ExecuteAsync(logger, action, caller, options);
 
-  private static T Execute<T>(ILogger logger, Func<T> action, string caller, ExecuteBlockOptions? options = default)
+  private static T Execute<T>(ILogger logger, Func<T> action, string caller, Models.Logging.ExecuteBlockOptions? options = default)
   {
     options ??= DefaultOptions;
     var messages = new Messages();
@@ -108,7 +107,10 @@ public static class LoggerExtensions
     }
   }
 
-  private static async Task<T> ExecuteAsync<T>(ILogger logger, Func<Task<T>> action, string caller, ExecuteBlockOptions? options = default)
+  private static async Task<T> ExecuteAsync<T>(ILogger logger,
+    Func<Task<T>> action,
+    string caller,
+    Models.Logging.ExecuteBlockOptions? options = default)
   {
     options ??= DefaultOptions;
     var messages = new Messages();
@@ -128,7 +130,11 @@ public static class LoggerExtensions
     }
   }
 
-  private static void LogMethodEnter(ILogger logger, bool isAsync, string caller, ExecuteBlockOptions options, ref Messages messages)
+  private static void LogMethodEnter(ILogger logger,
+    bool isAsync,
+    string caller,
+    Models.Logging.ExecuteBlockOptions options,
+    ref Messages messages)
   {
     var methodMessage = messages.MethodMessage;
     var typeParametersMessage = messages.TypeParametersMessage;
@@ -149,7 +155,7 @@ public static class LoggerExtensions
     bool isAsync,
     string caller,
     Exception exception,
-    ExecuteBlockOptions options,
+    Models.Logging.ExecuteBlockOptions options,
     ref Messages messages)
   {
     var methodMessage = messages.MethodMessage;
@@ -161,7 +167,11 @@ public static class LoggerExtensions
     messages.ConditionallyUpdateMethodMessage(methodMessage);
   }
 
-  private static void LogMethodExit(ILogger logger, bool isAsync, string caller, ExecuteBlockOptions options, ref Messages messages)
+  private static void LogMethodExit(ILogger logger,
+    bool isAsync,
+    string caller,
+    Models.Logging.ExecuteBlockOptions options,
+    ref Messages messages)
   {
     var methodMessage = messages.MethodMessage;
     var typeParametersMessage = messages.TypeParametersMessage;

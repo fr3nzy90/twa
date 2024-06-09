@@ -2,18 +2,16 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using TodoWebApp.Foundation.Scheduling.Extensions;
-using TodoWebApp.Foundation.Scheduling.Models.Configuration;
-using TodoWebApp.Foundation.Scheduling.Services;
 using TodoWebApp.Foundation.Shared.Extensions.Logging;
 using TodoWebApp.Foundation.Shared.Extensions.Threading;
 
 namespace TodoWebApp.Foundation.Scheduling.Jobs;
 
 public abstract class SimpleSchedulerJobBase<T> : BackgroundService
-  where T : SimpleSchedulerJobConfiguration
+  where T : Models.Configuration.SimpleSchedulerJobConfiguration
 {
   protected readonly ILogger _logger;
-  protected readonly ISchedulerService _schedulerService;
+  protected readonly Services.ISchedulerService _schedulerService;
   protected readonly string _name;
   protected readonly string _configurationName;
   protected readonly IOptionsMonitor<T> _configurationMonitor;
@@ -23,7 +21,7 @@ public abstract class SimpleSchedulerJobBase<T> : BackgroundService
   private Guid _schedulerWorkId;
 
   protected SimpleSchedulerJobBase(ILogger logger,
-    ISchedulerService schedulerService,
+    Services.ISchedulerService schedulerService,
     string name,
     string configurationName,
     IOptionsMonitor<T> configurationMonitor)
@@ -35,7 +33,7 @@ public abstract class SimpleSchedulerJobBase<T> : BackgroundService
     _configurationMonitor = configurationMonitor;
     _configurationChangeListenerHandle = _configurationMonitor.OnChange(OnConfigurationChange);
     _synchronizer = new();
-    _schedulerWorkId = _schedulerService.Add(ExecuteWork, _name, ISchedulerService.InfiniteOperationTimeout);
+    _schedulerWorkId = _schedulerService.Add(ExecuteWork, _name, Services.ISchedulerService.InfiniteOperationTimeout);
   }
 
   public virtual new void Dispose() =>
@@ -44,7 +42,7 @@ public abstract class SimpleSchedulerJobBase<T> : BackgroundService
       base.Dispose();
       _configurationChangeListenerHandle?.Dispose();
       Cancel();
-      var success = _schedulerService.Remove(_schedulerWorkId, ISchedulerService.InfiniteOperationTimeout);
+      var success = _schedulerService.Remove(_schedulerWorkId, Services.ISchedulerService.InfiniteOperationTimeout);
       if (!success)
       {
         _logger.LogCritical("{0} removing failed", _name);
@@ -68,7 +66,7 @@ public abstract class SimpleSchedulerJobBase<T> : BackgroundService
       _synchronizer.Execute(() =>
       {
         _currentConfiguration.Convert(out var options);
-        var success = _schedulerService.Schedule(_schedulerWorkId, options, ISchedulerService.InfiniteOperationTimeout);
+        var success = _schedulerService.Schedule(_schedulerWorkId, options, Services.ISchedulerService.InfiniteOperationTimeout);
         if (!success)
         {
           _logger.LogCritical("{0} scheduling failed", _name);
@@ -79,7 +77,7 @@ public abstract class SimpleSchedulerJobBase<T> : BackgroundService
   private void Cancel() =>
     _logger.ExecuteWithLogging(() =>
     {
-      var success = _schedulerService.Cancel(_schedulerWorkId, ISchedulerService.InfiniteOperationTimeout);
+      var success = _schedulerService.Cancel(_schedulerWorkId, Services.ISchedulerService.InfiniteOperationTimeout);
       if (!success)
       {
         _logger.LogCritical("{0} cancelling failed", _name);

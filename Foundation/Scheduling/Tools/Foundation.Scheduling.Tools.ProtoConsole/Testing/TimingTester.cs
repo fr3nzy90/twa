@@ -1,7 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using System.Diagnostics;
-using TodoWebApp.Foundation.Scheduling.Models.DTOs;
-using TodoWebApp.Foundation.Scheduling.Services;
 
 namespace Foundation.Scheduling.Tools.ProtoConsole.Testing;
 
@@ -51,7 +49,9 @@ internal static class TimingTester
       $"{Iteration};{ExecutionBegin};{ExecutionEnd}";
   }
 
-  private record Schedulation(string ExternalId, ScheduleOptions Options, TimeSpan WorkDuration)
+  private record Schedulation(string ExternalId,
+    TodoWebApp.Foundation.Scheduling.Models.DTOs.ScheduleOptions Options,
+    TimeSpan WorkDuration)
   {
     public Guid Id { get; set; }
   }
@@ -64,32 +64,32 @@ internal static class TimingTester
     ClearReports();
     Schedulations = new()
     {
-      new("TSK_A_FixedDelay", new ScheduleOptions{
+      new("TSK_A_FixedDelay", new TodoWebApp.Foundation.Scheduling.Models.DTOs.ScheduleOptions{
         RelativeStartDelay = TimeSpan.FromSeconds(5),
         Interval = TimeSpan.FromSeconds(3),
-        PeriodicType = PeriodicBehaviour.FixedDelay
+        PeriodicType = TodoWebApp.Foundation.Scheduling.Models.DTOs.PeriodicBehaviour.FixedDelay
       }, TimeSpan.FromMilliseconds(500)),
-      new("TSK_A_FixedRate", new ScheduleOptions{
+      new("TSK_A_FixedRate", new TodoWebApp.Foundation.Scheduling.Models.DTOs.ScheduleOptions{
         RelativeStartDelay = TimeSpan.FromSeconds(5),
         Interval = TimeSpan.FromSeconds(3),
-        PeriodicType = PeriodicBehaviour.FixedRate
+        PeriodicType = TodoWebApp.Foundation.Scheduling.Models.DTOs.PeriodicBehaviour.FixedRate
       }, TimeSpan.FromMilliseconds(500)),
-      new("TSK_B_FixedDelay", new ScheduleOptions{
+      new("TSK_B_FixedDelay", new TodoWebApp.Foundation.Scheduling.Models.DTOs.ScheduleOptions{
         RelativeStartDelay = TimeSpan.FromSeconds(5),
         Interval = TimeSpan.FromSeconds(2),
-        PeriodicType = PeriodicBehaviour.FixedDelay
+        PeriodicType = TodoWebApp.Foundation.Scheduling.Models.DTOs.PeriodicBehaviour.FixedDelay
       }, TimeSpan.FromMilliseconds(250)),
-      new("TSK_B_FixedRate", new ScheduleOptions{
+      new("TSK_B_FixedRate", new TodoWebApp.Foundation.Scheduling.Models.DTOs.ScheduleOptions{
         RelativeStartDelay = TimeSpan.FromSeconds(5),
         Interval = TimeSpan.FromSeconds(2),
-        PeriodicType = PeriodicBehaviour.FixedRate
+        PeriodicType = TodoWebApp.Foundation.Scheduling.Models.DTOs.PeriodicBehaviour.FixedRate
       }, TimeSpan.FromMilliseconds(250))
     };
   }
 
   public static void Run(IServiceProvider serviceProvider)
   {
-    var schedulerService = serviceProvider.GetRequiredService<ISchedulerService>();
+    var schedulerService = serviceProvider.GetRequiredService<TodoWebApp.Foundation.Scheduling.Services.ISchedulerService>();
     Schedulations.ForEach(schedulerService.Add);
     Schedulations.ForEach(schedulerService.Schedule);
   }
@@ -107,7 +107,7 @@ internal static class TimingTester
     }
   }
 
-  private static void Add(this ISchedulerService schedulerService, Schedulation schedulation)
+  private static void Add(this TodoWebApp.Foundation.Scheduling.Services.ISchedulerService schedulerService, Schedulation schedulation)
   {
     var testReporter = new TimingTest(Path.Combine(ReportsDirectory, $"{schedulation.ExternalId}_report.csv"));
     schedulation.Id = schedulerService.Add(cancellationToken =>
@@ -123,6 +123,7 @@ internal static class TimingTester
     }, schedulation.ExternalId);
   }
 
-  private static void Schedule(this ISchedulerService schedulerService, Schedulation schedulation) =>
+  private static void Schedule(this TodoWebApp.Foundation.Scheduling.Services.ISchedulerService schedulerService,
+    Schedulation schedulation) =>
     schedulerService.Schedule(schedulation.Id, schedulation.Options);
 }
